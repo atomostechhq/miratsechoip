@@ -2,6 +2,9 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const app = express();
 const NodeGeocoder = require('node-geocoder');
+const countryData = require('country-data');
+const moment = require('moment-timezone');
+const ct = require('countries-and-timezones');
 
 
 const options = {
@@ -26,6 +29,34 @@ app.get('/', async (req, res) => {
     } else if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
         deviceType = "Mobile";
     }
+
+    async function getCountryDetails(countryCode) {
+        const country = countryData.countries[countryCode];
+        return {
+            alpha2: country.alpha2,
+            alpha3: country.alpha3,
+            countryCallingCodes: country.countryCallingCodes,
+            currency: country.currencies[0],
+            languages: country.languages,
+            flag: country.emoji
+        };
+    }
+    
+    const getCountryTime = async (countryCode) => {
+        const timezones = ct.getTimezonesForCountry(countryCode);
+        if (timezones.length > 0) {
+            const timezone = timezones[0].name;
+            const now = moment.tz(timezone);
+            return {
+                timezone: timezone,
+                localTime: now.format(),
+                timezoneData: timezones[0]
+            };
+        } else {
+            return { error: "No timezone found for this country code." };
+        }
+    };
+    
 
 
     async function fetchLocation(lat, long) {
@@ -58,6 +89,9 @@ app.get('/', async (req, res) => {
     const lat = user_long_lat.toString().split(',')[1]
 
     const user_geolocation = await fetchLocation(long, lat);
+    const country_details = await getCountryDetails(user_country);
+    const country_time_details = await getCountryTime(user_country);
+
 
     console.log(user_long_lat, long, lat, user_geolocation)
 
@@ -73,6 +107,8 @@ app.get('/', async (req, res) => {
         "platform": platform,
         "device_type": device_type,
         "user_geolocation": user_geolocation ? user_geolocation : "No data",
+        "country_details": country_details,
+        "country_time_details": country_time_details
     });
 });
 
