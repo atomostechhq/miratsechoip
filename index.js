@@ -19,16 +19,16 @@ app.get('/', (req, res) => {
   const ipv6 = ips.find(ip => ip.includes(':'));
   const user_ip = req.headers['x-appengine-user-ip'];
   const user_long_lat = req.headers['x-appengine-citylatlong'];
-  const user_country = req.headers['x-appengine-country'];
+  const user_country = (req.headers['x-appengine-country']).toString().toUpperCase();
   const user_city = req.headers['x-appengine-city'];
-  const user_region = req.headers['x-appengine-region'];
+  const user_region = req.headers['x-appengine-region'].toString().toUpperCase();
   const user_agent = req.headers['user-agent'];
   const platform = req.headers['sec-ch-ua-platform'];
 
   res.json({
     "ipv4": ipv4,
     "ipv6": ipv6,
-    "user_id": user_ip,
+    "user_ip_address": user_ip,
     "long_lat": user_long_lat,
     "user_country": user_country,
     "user_city": user_city,
