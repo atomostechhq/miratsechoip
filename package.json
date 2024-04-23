@@ -1,0 +1,19 @@
+{
+  "name": "miratsechoip",
+  "version": "1.0.0",
+  "description": "IPv4 and IPv6 Fetch",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mirats"
+  ],
+  "author": "Mayank Patel",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.2.0"
+  }
+}
