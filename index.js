@@ -15,6 +15,15 @@ app.get('/', (req, res) => {
   let ips = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',').map(ip => ip.trim()) : [];
   ips.push(req.socket.remoteAddress);
 
+  const ua = req.headers['user-agent'];
+  let deviceType = "Desktop";
+  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+    deviceType = "Tablet";
+  } else if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+    deviceType = "Mobile";
+  }
+
+
   const ipv4 = ips.find(ip => ip.includes('.'));
   const ipv6 = ips.find(ip => ip.includes(':'));
   const user_ip = req.headers['x-appengine-user-ip'];
@@ -24,6 +33,7 @@ app.get('/', (req, res) => {
   const user_region = req.headers['x-appengine-region'].toString().toUpperCase();
   const user_agent = req.headers['user-agent'];
   const platform = req.headers['sec-ch-ua-platform'];
+  const device_type = deviceType;
 
   res.json({
     "ipv4": ipv4,
@@ -34,7 +44,8 @@ app.get('/', (req, res) => {
     "user_city": user_city,
     "user_region": user_region,
     "user_agent": user_agent,
-    "platform": platform
+    "platform": platform,
+    "device_type": device_type,
   });
 });
 
