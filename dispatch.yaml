@@ -1,0 +1,3 @@
+dispatch:
+  - url: "echoip.miratsapiservices.com/*"
+    service: default
