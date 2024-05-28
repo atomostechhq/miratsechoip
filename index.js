@@ -1,6 +1,7 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const app = express();
+const cors = require('cors');
 const NodeGeocoder = require('node-geocoder');
 const countryData = require('country-data');
 const moment = require('moment-timezone');
@@ -17,6 +18,7 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
+app.use(cors()); 
 
 app.get('/', async (req, res) => {
     let ips = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',').map(ip => ip.trim()) : [];
