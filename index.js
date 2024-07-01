@@ -1,24 +1,20 @@
-const express = require('express');
-const rateLimit = require('express-rate-limit');
-const app = express();
-const cors = require('cors');
-const NodeGeocoder = require('node-geocoder');
-const countryData = require('country-data');
-const moment = require('moment-timezone');
-const ct = require('countries-and-timezones');
+import express from 'express';
+import cors from 'cors';
+import NodeGeocoder from 'node-geocoder';
+import countryData from 'country-data';
+import moment from 'moment-timezone';
+import ct from 'countries-and-timezones';
+import fetch from 'node-fetch';
 
+const app = express();
 
 const options = {
     provider: 'openstreetmap'
 };
 
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 1000 
-});
+app.set('trust proxy', true);
 
-app.use(limiter);
-app.use(cors()); 
+app.use(cors());
 
 app.get('/', async (req, res) => {
     let ips = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',').map(ip => ip.trim()) : [];
@@ -58,20 +54,26 @@ app.get('/', async (req, res) => {
             return { error: "No timezone found for this country code." };
         }
     };
-    
-
 
     async function fetchLocation(lat, long) {
-        const geocoder = NodeGeocoder(options);
-        const latitude = lat;
-        const longitude = long;
-
+        const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${long}&format=json&addressdetails=1`;
+        
         try {
-            const res = await geocoder.reverse({ lat: latitude, lon: longitude });
-            console.log(res);
-            return res;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'User-Agent': 'your-app-name',
+                    'Accept-Language': 'en',
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log(data);
+            return data;
         } catch (err) {
-            console.error(err);
+            console.error('Error fetching location:', err);
             throw err;
         }
     }
@@ -87,30 +89,29 @@ app.get('/', async (req, res) => {
     const platform = req.headers['sec-ch-ua-platform'];
     const device_type = deviceType;
 
-    const long = user_long_lat.toString().split(',')[0]
-    const lat = user_long_lat.toString().split(',')[1]
+    const long = user_long_lat.toString().split(',')[0];
+    const lat = user_long_lat.toString().split(',')[1];
 
-    const user_geolocation = await fetchLocation(long, lat);
+    const user_geolocation = await fetchLocation(lat, long);
     const country_details = await getCountryDetails(user_country);
     const country_time_details = await getCountryTime(user_country);
 
-
-    console.log(user_long_lat, long, lat, user_geolocation)
+    console.log(user_long_lat, long, lat, user_geolocation);
 
     res.json({
-        "ipv4": ipv4,
-        "ipv6": ipv6,
-        "user_ip_address": user_ip,
-        "long_lat": user_long_lat,
-        "user_country": user_country,
-        "user_city": user_city,
-        "user_region": user_region,
-        "user_agent": user_agent,
-        "platform": platform,
-        "device_type": device_type,
-        "user_geolocation": user_geolocation ? user_geolocation : "No data",
-        "country_details": country_details,
-        "country_time_details": country_time_details
+        ipv4: ipv4,
+        ipv6: ipv6,
+        user_ip_address: user_ip,
+        long_lat: user_long_lat,
+        user_country: user_country,
+        user_city: user_city,
+        user_region: user_region,
+        user_agent: user_agent,
+        platform: platform,
+        device_type: device_type,
+        user_geolocation: user_geolocation ? user_geolocation : "No data",
+        country_details: country_details,
+        country_time_details: country_time_details
     });
 });
 
