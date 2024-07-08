@@ -61,10 +61,6 @@ app.get('/', async (req, res) => {
         try {
             const response = await fetch(url, {
                 method: 'GET',
-                headers: {
-                    'User-Agent': 'your-app-name',
-                    'Accept-Language': 'en',
-                },
             });
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -77,6 +73,10 @@ app.get('/', async (req, res) => {
             throw err;
         }
     }
+
+    console.log(fetchLocation(26.846694,80.946166));
+    console.log(await fetchLocation(26.846694,80.946166));
+    
 
     const ipv4 = ips.find(ip => ip.includes('.'));
     const ipv6 = ips.find(ip => ip.includes(':'));
