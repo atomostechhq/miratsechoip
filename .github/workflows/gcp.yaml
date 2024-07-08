@@ -1,0 +1,34 @@
+name: Deploy to Google App Engine
+
+on:
+  push:
+    branches:
+      - main
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Set up Node.js environment
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'
+
+    # Install dependencies
+    - name: Install dependencies
+      run: npm install
+
+    - name: Steup Authentication v1
+      uses: 'google-github-actions/auth@v2'
+      with: 
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+    #deploy to app engine
+    - id: 'deploy'
+      uses: 'google-github-actions/deploy-appengine@v2'
