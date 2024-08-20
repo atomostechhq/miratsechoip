@@ -15,7 +15,18 @@ const options = {
 app.set('trust proxy', true);
 
 app.use(cors());
-
+app.get("/get-ip",(req,res)=>{
+   let ips = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',').map(ip => ip.trim()) : [];
+    ips.push(req.socket.remoteAddress); 
+    const ipv4 = ips.find(ip => ip.includes('.'));
+    const ipv6 = ips.find(ip => ip.includes(':'));
+    const user_ip = req.headers['x-appengine-user-ip'];
+     res.json({
+        ipv4: ipv4,
+        ipv6: ipv6,
+        user_ip_address: user_ip,
+    });
+})
 app.get('/', async (req, res) => {
     let ips = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',').map(ip => ip.trim()) : [];
     ips.push(req.socket.remoteAddress);
