@@ -32,45 +32,51 @@ app.get("/get-ip", (req, res) => {
 });
 // get geo data
 app.get("/ip-data", async (req, res) => {
-  let ips = req.headers["x-forwarded-for"]
-    ? req.headers["x-forwarded-for"].split(",").map((ip) => ip.trim())
-    : [];
-  ips.push(req.socket.remoteAddress);
-  const ipv4 = ips.find((ip) => ip.includes("."));
-  const ipv6 = ips.find((ip) => ip.includes(":"));
-  const user_ip = req.headers["x-appengine-user-ip"];
-  const user_country = req.headers["x-appengine-country"]
-    .toString()
-    .toUpperCase();
+  try {
+    let ips = req.headers["x-forwarded-for"]
+      ? req.headers["x-forwarded-for"].split(",").map((ip) => ip.trim())
+      : [];
+    ips.push(req.socket.remoteAddress);
+    const ipv4 = ips.find((ip) => ip.includes("."));
+    const ipv6 = ips.find((ip) => ip.includes(":"));
+    const user_ip = req.headers["x-appengine-user-ip"];
+    const user_country = req.headers["x-appengine-country"]
+      .toString()
+      .toUpperCase();
 
-  const getCountryTime = async (countryCode) => {
-    const timezones = ct.getTimezonesForCountry(countryCode);
-    if (timezones.length > 0) {
-      const timezone = timezones[0].name;
-      return {
-        timezone: timezone,
-      };
-    } else {
-      return { error: "No timezone found for this country code." };
-    }
-  };
-  const country_time_details = await getCountryTime(user_country);
-  async function getCountryDetails(countryCode) {
-    const country = countryData.countries[countryCode];
-    return {
-      country_code2: country.alpha2,
-      country_code3: country.alpha3,
+    const getCountryTime = async (countryCode) => {
+      const timezones = ct.getTimezonesForCountry(countryCode);
+      if (timezones.length > 0) {
+        const timezone = timezones[0].name;
+        return {
+          name: timezone,
+        };
+      } else {
+        return { error: "No timezone found for this country code." };
+      }
     };
+    const country_time_details = await getCountryTime(user_country);
+    async function getCountryDetails(countryCode) {
+      const country = countryData.countries[countryCode];
+      return {
+        country_code2: country.alpha2,
+        country_code3: country.alpha3,
+      };
+    }
+    const country_details = await getCountryDetails(user_country);
+    res.json({
+      ipv4: ipv4,
+      ipv6: ipv6,
+      ...country_details,
+      country_name: user_country,
+      ip: user_ip,
+      time_zone: country_time_details,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, msg: error?.message || "internal server error" });
   }
-  const country_details = await getCountryDetails(user_country);
-  res.json({
-    ipv4: ipv4,
-    ipv6: ipv6,
-    ...country_details,
-    country_name: user_country,
-    ip: user_ip,
-    time_zone: country_time_details,
-  });
 });
 app.get("/", async (req, res) => {
   let ips = req.headers["x-forwarded-for"]
