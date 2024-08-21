@@ -15,6 +15,7 @@ const options = {
 app.set("trust proxy", true);
 
 app.use(cors());
+// get ip
 app.get("/get-ip", (req, res) => {
   let ips = req.headers["x-forwarded-for"]
     ? req.headers["x-forwarded-for"].split(",").map((ip) => ip.trim())
@@ -29,6 +30,7 @@ app.get("/get-ip", (req, res) => {
     user_ip_address: user_ip,
   });
 });
+// get geo data
 app.get("/ip-data", async (req, res) => {
   let ips = req.headers["x-forwarded-for"]
     ? req.headers["x-forwarded-for"].split(",").map((ip) => ip.trim())
@@ -45,11 +47,8 @@ app.get("/ip-data", async (req, res) => {
     const timezones = ct.getTimezonesForCountry(countryCode);
     if (timezones.length > 0) {
       const timezone = timezones[0].name;
-      const now = moment.tz(timezone);
       return {
         timezone: timezone,
-        localTime: now.format(),
-        timezoneData: timezones[0],
       };
     } else {
       return { error: "No timezone found for this country code." };
